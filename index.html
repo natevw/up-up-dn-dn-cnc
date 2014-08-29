@@ -1,0 +1,45 @@
+<!doctype html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Remote controller</title>
+</head><body>
+  <input id=slider type=range min=0.06 max=0.27 step=0.0001 value=0> <label for=slider></label>
+  <script>
+    var slider = document.querySelector('input'),
+        label = document.querySelector('label');
+    slider.addEventListener('input', function () {
+      var val = +slider.value;
+      label.innerText = val || '';
+      sendValue(val);
+    }, false);
+    
+    var throttle;
+    function throttledSend(val) {
+      clearTimeout(throttle);
+      throttle = setTimeout(function () {      
+        sendValue(val);
+      }, 250);
+    }
+    
+    function sendValue(val) {
+      var req = new XMLHttpRequest();
+      req.open('GET', "http://192.168.1.5/"+val);
+      req.send(); 
+    }
+    
+    var cycle;
+    function test(min, max) {
+      var val = min,
+          stp = (min - max) / 10;
+      setInterval(function () {
+        val += stp;
+        if (val > max || val < min) stp *= -1;
+        sendValue(val);
+      }, 1e3);
+    }
+    function stop() {
+      clearInterval(cycle);
+    }
+    
+  </script>
+</body></html>
