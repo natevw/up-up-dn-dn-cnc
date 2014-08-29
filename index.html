@@ -41,5 +41,22 @@
       clearInterval(cycle);
     }
     
+    var b = +slider.min,
+        m = (+slider.max - b);
+    
+    var idx = 0, prev = 0.06;
+    function poll() {
+      if (idx < 0) return;
+      else window.requestAnimationFrame(poll);
+      
+      var pad = navigator.getGamepads()[idx];
+      if (!pad) return;
+      
+      var val = pad.buttons[7].value,
+          vvv = m*val + b;
+      label.innerText = slider.value = vvv;
+      if (vvv !== prev) throttledSend(prev = vvv);
+    }
+    poll();
   </script>
 </body></html>
