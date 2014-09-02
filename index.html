@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <title>Remote controller</title>
 </head><body>
-  <input id=slider type=range min=0.06 max=0.27> <label for=slider></label>
+  <input id=slider type=range min=0.06 max=0.23 step=0.0001> <label for=slider></label>
   <script>
     var slider = document.querySelector('input'),
         label = document.querySelector('label'),
@@ -22,11 +22,20 @@
       }, 250);
     }
     
-    function sendValue(val) {
+    function sendValue(val, cb) {
       var req = new XMLHttpRequest();
       req.open('GET', "http://192.168.1.5/"+val);
       req.send(); 
+      if (cb) req.onreadystatechange = function () {
+        if (this.readyState === req.DONE) cb();
+      }
     }
+    
+    
+    function sendCurrent() {
+      sendValue(current, sendCurrent);
+    }
+    
     
     var b = +slider.min,
         m = (+slider.max - b);
@@ -39,10 +48,11 @@
       var pad = navigator.getGamepads()[idx];
       if (!pad) return;
       
-      var val = pad.buttons[7].value,
+      //var val = pad.buttons[7].value,
+      var val = (1 - pad.axes[3]) / 2,
           vvv = m*val + b;
-      label.innerText = slider.value = vvv;
-      if (vvv !== prev) throttledSend(prev = vvv);
+      label.innerText = slider.value = current = vvv;
+      //if (vvv !== prev) throttledSend(prev = vvv);
     }
     poll();
   </script>
