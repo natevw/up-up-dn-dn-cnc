@@ -5,37 +5,32 @@
 </head><body>
   <input id=slider type=range min=0.06 max=0.23 step=0.0001> <label for=slider></label>
   <script>
-    var slider = document.querySelector('input'),
+    var server = new WebSocket("ws://192.168.1.5/"),
+        slider = document.querySelector('input'),
         label = document.querySelector('label'),
         current = +slider.value;
     slider.addEventListener('input', function () {
       var val = +slider.value;
       label.innerText = val || '';
-      sendValue(val);
+      throttledSend(val);
     }, false);
     
-    var throttle;
-    function throttledSend(val) {
-      clearTimeout(throttle);
-      throttle = setTimeout(function () {      
-        sendValue(val);
-      }, 250);
-    }
     
-    function sendValue(val, cb) {
-      var req = new XMLHttpRequest();
-      req.open('GET', "http://192.168.1.5/"+val);
-      req.send(); 
-      if (cb) req.onreadystatechange = function () {
-        if (this.readyState === req.DONE) cb();
+    var _timeout = 'socket',
+        _d = null;
+    function throttledSend(d) {
+      if (_timeout) return _d = d;
+      server.send(d);
+      _timeout = setTimeout(_timeoutDone, 100);
+    }
+    function _timeoutDone() {
+      _timeout = null;
+      if (_d !== null) {
+        throttledSend(_d);
+        _d = null;
       }
     }
-    
-    
-    function sendCurrent() {
-      sendValue(current, sendCurrent);
-    }
-    
+    server.onopen = _timeoutDone;
     
     var b = +slider.min,
         m = (+slider.max - b);
@@ -52,7 +47,7 @@
       var val = (1 - pad.axes[3]) / 2,
           vvv = m*val + b;
       label.innerText = slider.value = current = vvv;
-      //if (vvv !== prev) throttledSend(prev = vvv);
+      if (vvv !== prev) throttledSend(prev = vvv);
     }
     poll();
   </script>

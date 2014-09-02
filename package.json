@@ -1,0 +1,15 @@
+{
+  "name": "up-up-dn-dn-cnc",
+  "version": "0.0.1",
+  "description": "Control TinyCNC from Tessel via HTML5 gamepad",
+  "main": "server.tessel.js",
+  "dependencies": {
+    "nodejs-websocket": "^1.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Nathan Vander Wilt",
+  "license": "ISC"
+}
