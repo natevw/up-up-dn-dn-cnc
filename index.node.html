@@ -1,0 +1,54 @@
+<!doctype html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Remote controller</title>
+</head><body>
+  <input id=slider class=x type=range min=-1 max=1 step=0.01>
+  <input id=slider class=y type=range min=-1 max=1 step=0.01>
+  <input id=slider class=z type=range min=-1 max=1 step=0.01>
+  <script>
+    var server = new WebSocket("ws://localhost:8080/"),
+        sliderX = document.querySelector('input.x'),
+        sliderY = document.querySelector('input.y'),
+        sliderZ = document.querySelector('input.z');
+    sliderX.addEventListener('input', sendFromSliders, false);
+    sliderY.addEventListener('input', sendFromSliders, false);
+    function sendFromSliders() {
+      throttledSend({
+        x: +sliderX.value,
+        y: +sliderY.value,
+        z: +sliderZ.value,
+      });
+    }
+    
+    // sending
+    var _timeout = 'socket',
+        _d = null;
+    function throttledSend(d) {
+      if (_timeout) return _d = d;
+      server.send(JSON.stringify(d));
+      _timeout = setTimeout(_timeoutDone, 100);
+    }
+    function _timeoutDone() {
+      _timeout = null;
+      if (_d !== null) {
+        throttledSend(_d);
+        _d = null;
+      }
+    }
+    server.onopen = _timeoutDone;
+    
+    function pollGamepad() {
+      var pad = navigator.getGamepads()[0];
+      if (!pad) return;
+      
+      throttledSend({
+        x: (sliderX.value = -pad.axes[3]),
+        y: (sliderY.value = pad.axes[2]),
+        z: (sliderZ.value = -1+2*pad.buttons[7].value)
+      });
+      window.requestAnimationFrame(pollGamepad);
+    }
+    pollGamepad();
+  </script>
+</body></html>
